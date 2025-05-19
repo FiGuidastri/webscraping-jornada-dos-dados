@@ -5,6 +5,9 @@ class PlaystationSpider(scrapy.Spider):
     name = "playstation"
     allowed_domains = ["lista.mercadolivre.com.br"]
     start_urls = ["https://lista.mercadolivre.com.br/ps5#D[A:ps5]"]
+    start_page = 1
+    end_page = 10
+    page_count = 0
 
     def parse(self, response):
         
@@ -21,3 +24,13 @@ class PlaystationSpider(scrapy.Spider):
                 'old_price': prices[0] if len (prices) > 0 else None, # trás o preço do produto
                 'new_price': prices[1] if len (prices) > 0 else None, # trás o preço do produto
             }
+
+        # Verifica se a página atual é menor que a página final
+        if self.page_count < self.end_page:
+                next_page = response.css('andes-pagination__button.andes-pagination__button--next.a::attr(href)').get()
+                if next_page is not None:
+                    self.page_count += 1
+                    yield scrapy.Request(
+                        url=next_page,
+                        callback=self.parse
+                    )
